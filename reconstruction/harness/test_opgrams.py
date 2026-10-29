@@ -1,7 +1,12 @@
+#!/usr/bin/env python3
 """Opcode n-grams follow the same instruction width as insns()."""
+import importlib.util
+from pathlib import Path
 import unittest
 
-import win
+SPEC = importlib.util.spec_from_file_location('window_analysis', Path(__file__).with_name('win.py'))
+win = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(win)
 
 
 class OpgramTests(unittest.TestCase):
