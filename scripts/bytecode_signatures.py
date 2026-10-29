@@ -77,7 +77,7 @@ def call_symbol(elf, offset):
     if regs == 0x00:
         return SYSCALL_NAMES.get(struct.unpack_from("<I", blob, offset + 4)[0])
     if regs >> 4 == 1 and struct.unpack_from("<i", blob, offset + 4)[0] == -1:
-        relocation = getattr(elf, "relocations", {}).get(offset) or {}
+        relocation = elf.relocations.get(offset) or {}
         if relocation.get("type") == 10 and relocation.get("symbol"):
             return relocation["symbol"]
     return None

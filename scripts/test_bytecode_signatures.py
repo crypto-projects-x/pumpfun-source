@@ -10,6 +10,13 @@ from window_elf_reader import Elf
 
 
 class RelocatedSyscallTests(unittest.TestCase):
+    def sites(self, elf, symbol):
+        return sum(
+            1 for at, rel in elf.relocations.items()
+            if rel.get('type') == 10 and rel.get('symbol') == symbol
+            and elf.lo <= at < elf.hi
+        )
+
     def test_hash_immediate_syscalls_still_count(self):
         blob = bytearray(8)
         blob[0] = 0x85
@@ -62,16 +69,8 @@ class RelocatedSyscallTests(unittest.TestCase):
         }
         for name, (invoke_name, invoke_n, copy_name, copy_n) in expected.items():
             elf = Elf(root / 'evidence/original' / name / 'deployed.so')
-
-            def sites(symbol, image=elf):
-                return sum(
-                    1 for at, rel in image.relocations.items()
-                    if rel.get('type') == 10 and rel.get('symbol') == symbol
-                    and image.lo <= at < image.hi
-                )
-
-            self.assertEqual(sites(invoke_name), invoke_n, name)
-            self.assertEqual(sites(copy_name), copy_n, name)
+            self.assertEqual(self.sites(elf, invoke_name), invoke_n, name)
+            self.assertEqual(self.sites(elf, copy_name), copy_n, name)
             self.assertEqual(
                 len(bytecode_signatures.detect_cpi_patterns(elf, elf.lo, elf.hi)),
                 invoke_n,
